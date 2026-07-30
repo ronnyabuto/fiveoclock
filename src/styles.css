@@ -1,0 +1,94 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #f3f1e9;
+  background: #07110f;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+body { min-width: 320px; background: radial-gradient(circle at 68% 50%, #10231d 0, #07110f 47%); }
+
+.clock-app {
+  width: 100%;
+  height: 100dvh;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: max(22px, env(safe-area-inset-top)) max(clamp(22px, 5vw, 76px), env(safe-area-inset-right)) max(22px, env(safe-area-inset-bottom)) max(clamp(22px, 5vw, 76px), env(safe-area-inset-left));
+  display: grid;
+  grid-template-rows: 48px minmax(0, 1fr);
+}
+
+header { display: flex; align-items: center; justify-content: space-between; }
+.brand, .live { display: flex; align-items: center; gap: 9px; font-size: 11px; font-weight: 700; letter-spacing: .15em; }
+.brand-mark { width: 18px; height: 18px; fill: none; stroke: #f5ae46; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.live { color: #9cafa7; font-size: 10px; }
+.live i { width: 6px; height: 6px; background: #f5ae46; border-radius: 50%; box-shadow: 0 0 0 4px rgba(245,174,70,.09); }
+
+.clock-layout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr minmax(320px, .86fr);
+  align-items: center;
+  gap: clamp(40px, 9vw, 150px);
+}
+
+.digital-side { min-width: 0; }
+.kicker { margin: 0 0 18px; color: #9cafa7; font-size: clamp(11px, 1vw, 13px); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+.digital { display: flex; align-items: baseline; color: #f5ae46; font-size: clamp(88px, 12vw, 184px); font-weight: 500; line-height: .84; letter-spacing: -.075em; font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+.digital small { margin-left: .1em; color: #b78237; font-size: .24em; letter-spacing: 0; }
+.place { margin-top: clamp(28px, 5vh, 52px); }
+.place h1 { margin: 0; font-size: clamp(38px, 5vw, 72px); font-weight: 450; line-height: .98; letter-spacing: -.055em; }
+.place p { margin: 10px 0 0; color: #9cafa7; font-size: 14px; }
+.facts { display: flex; gap: 12px; margin-top: 28px; color: #c5cec9; font-size: 12px; font-variant-numeric: tabular-nums; }
+.facts span { padding: 9px 13px; border: 1px solid rgba(190,211,202,.18); border-radius: 999px; }
+.facts span:last-child { color: #ffd18a; border-color: rgba(245,174,70,.28); }
+
+.analogue-side { min-width: 0; display: grid; place-items: center; }
+.analogue { width: min(39vw, 500px); max-height: calc(100dvh - 130px); filter: drop-shadow(0 32px 70px rgba(0,0,0,.28)); }
+.clock-face { fill: #0b1815; stroke: rgba(190,211,202,.19); stroke-width: 1; }
+.tick { stroke: #536861; stroke-width: 1; }
+.tick.major { stroke: #9cafa7; stroke-width: 2; }
+.analogue text { fill: #7f928a; font-size: 13px; text-anchor: middle; dominant-baseline: middle; font-variant-numeric: tabular-nums; }
+.hand { stroke-linecap: round; }
+.hour-hand { stroke: #f3f1e9; stroke-width: 8; }
+.minute-hand { stroke: #d8ddd9; stroke-width: 5; }
+.second-hand { stroke: #f5ae46; stroke-width: 2; }
+.clock-pin { fill: #f5ae46; stroke: #0b1815; stroke-width: 3; }
+.unavailable { height: 100%; display: grid; place-items: center; }
+
+@media (max-width: 720px) {
+  body { background: radial-gradient(circle at 50% 75%, #10231d 0, #07110f 53%); }
+  .clock-app { padding: max(18px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); grid-template-rows: 38px minmax(0, 1fr); }
+  .clock-layout { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 10px; align-items: start; padding-top: clamp(24px, 6vh, 52px); }
+  .kicker { margin-bottom: 14px; font-size: 10px; }
+  .digital { font-size: clamp(74px, 23vw, 106px); }
+  .place { margin-top: 22px; }
+  .place h1 { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(34px, 10vw, 48px); }
+  .place p { margin-top: 6px; font-size: 12px; }
+  .facts { margin-top: 17px; gap: 8px; font-size: 10px; }
+  .facts span { padding: 7px 10px; }
+  .analogue-side { align-items: end; padding-bottom: 2px; }
+  .analogue { width: min(72vw, 300px); max-height: 39dvh; }
+}
+
+@media (max-height: 650px) and (max-width: 720px) and (orientation: landscape) {
+  .clock-layout { padding-top: 14px; grid-template-columns: 1.2fr .8fr; grid-template-rows: 1fr; align-items: center; gap: 16px; }
+  .digital { font-size: clamp(54px, 14vw, 76px); }
+  .place h1 { font-size: 28px; }
+  .analogue { width: min(36vw, 220px); max-height: 66dvh; }
+}
+
+@media (max-height: 650px) and (max-width: 480px) and (orientation: portrait) {
+  .clock-layout { padding-top: 12px; gap: 4px; }
+  .kicker { margin-bottom: 8px; }
+  .digital { font-size: clamp(66px, 21vw, 82px); }
+  .place { margin-top: 14px; }
+  .place h1 { font-size: 31px; }
+  .facts { margin-top: 12px; }
+  .analogue { width: min(48vw, 180px); max-height: 29dvh; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
