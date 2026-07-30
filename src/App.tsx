@@ -121,7 +121,7 @@ export default function App() {
   return (
     <main className="clock-app">
       <header>
-        <div className="brand"><ClockMark /><span>FIVE O’CLOCK</span></div>
+        <div className="brand"><ClockMark /><span>5PM CLOCK</span></div>
         <span className="live"><i /> LIVE</span>
       </header>
 
