@@ -26,7 +26,7 @@
     <string name="refresh_now">Refresh widgets</string>
     <string name="open_website">Open full clock</string>
     <string name="no_browser">No browser is available to open the clock.</string>
-    <string name="timing_help">The clocks tick locally without a background JavaScript process. City changes use precise alarms while the phone is active. Updates can be deferred while asleep and are recalculated after delivery.</string>
+    <string name="timing_help">The clocks tick locally without a background JavaScript process. Locations change automatically using idle-capable alarms, with a periodic recovery update. Android or Samsung battery restrictions can still delay delivery.</string>
     <string name="diagnostics_title">Update timing</string>
     <string name="details_title">Clock details</string>
     <string name="selection_details_format">%1$s · %2$s\n%3$s</string>

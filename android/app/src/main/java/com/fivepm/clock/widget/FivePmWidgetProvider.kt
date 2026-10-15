@@ -26,7 +26,7 @@ class FivePmWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
-            ALARM, REFRESH, Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_TIME_CHANGED,
+            ALARM, RECOVERY, REFRESH, Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_TIME_CHANGED,
             Intent.ACTION_TIMEZONE_CHANGED, Intent.ACTION_MY_PACKAGE_REPLACED,
             "android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" ->
                 WidgetController.update(context, intent.action!!)
@@ -36,6 +36,7 @@ class FivePmWidgetProvider : AppWidgetProvider() {
 
     companion object {
         const val ALARM = "com.fivepm.clock.ALARM"
+        const val RECOVERY = "com.fivepm.clock.RECOVERY"
         const val REFRESH = "com.fivepm.clock.REFRESH"
     }
 }

@@ -1,5 +1,54 @@
 # Validation record
 
+## Release 1.1.2: automatic location handovers
+
+Recorded on 2026-10-15, based on `151903c`, preserving the floating widget design.
+
+The prior build failed a real-alarm emulator test under forced Doze: its city remained Almaty
+past the scheduled handover. It passed the equivalent awake test. The Samsung-specific
+awake failure reported by the user is not reproduced on AOSP; these checks establish the idle
+failure and the new delivery/recovery behavior, not a complete diagnosis of One UI policies.
+
+The fix uses `setExactAndAllowWhileIdle(RTC_WAKEUP, ...)`, with an idle-capable inexact fallback.
+It replaces the next alarm before rendering, adds a 50 ms boundary-tie cushion, and registers a
+separate inexact 30-minute recovery alarm. It adds no running service or battery exemption.
+Idle-capable alarms can still be throttled; force-stop and OEM restrictions remain relevant.
+
+| Check | Result |
+| --- | --- |
+| Debug and release unit suites | 9 tests passed each, including late-delivery recovery |
+| Debug and release lint | Zero issues |
+| API 35 instrumentation | All 7 tests passed |
+| Old scheduling, awake handover | Passed |
+| Old scheduling, forced Doze handover | Failed: no alarm delivery, city stayed stale |
+| New scheduling, forced Doze handover | Passed: Kabul → Dubai; next event armed |
+| New scheduling, awake after background process killed | Passed: app restarted for alarm, Kabul → Dubai; next event armed |
+| Floating design | Renderer, layouts and drawable assets unchanged |
+| Signed release | versionCode 4, versionName 1.1.2; signature verified with existing key |
+
+The probe checks that a 30-minute repeating recovery alarm is actually registered, rather
+than relying on launcher metadata. Logs record individual receiver delays; these are not
+launcher frame-latency or Samsung guarantees. Instrumentation was run between accelerated
+alarm probes to avoid testing against per-app idle-alarm quotas unintentionally.
+
+Reproduction:
+
+```sh
+bash scripts/build-android-release.sh --no-daemon testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest
+python3 scripts/verify-widget-handover.py emulator-5556 --idle --output .local/handover-evidence/after-idle
+python3 scripts/verify-widget-handover.py emulator-5556 --kill-process --output .local/handover-evidence/after-awake
+```
+
+Install the debug APK and pin a widget before the alarm probes. The script restores emulator
+clock and idle settings. Native instrumentation uses the command recorded below for 1.1.1.
+Evidence is retained in `.local/handover-evidence/{before-idle,before-awake,after-idle,after-awake}/`
+and `instrumentation.txt`. Build output is `.local/android-tools/release-1.1.2-build.txt`.
+
+The installable APK is `.local/artifacts/fivepm-clock-1.1.2.apk` (87,572 bytes).
+SHA-256: `65804c60cb829d26a73eee70ad0e7f244545e5ba19be0e96f2bd65933e4232e7`.
+The certificate remains the same as prior versions. One UI delivery and overnight battery
+behavior still need validation on the physical S23 Ultra.
+
 ## Release 1.1.1: analogue settings fix
 
 Recorded on 2026-10-15, based on `5292318`.

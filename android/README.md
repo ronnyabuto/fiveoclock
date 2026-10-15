@@ -84,7 +84,8 @@ There are no countdown-only alarms at 17:00 or the circular-distance reset. If a
 has a single fixed-offset clock, no future event is needed; the native clock keeps ticking.
 
 Exact ties retain the web comparator's preference. A tie and the next millisecond can have
-different winners. Delayed deliveries recompute from the actual current time.
+different winners. Alarm delivery is scheduled 50 ms past the calculated event so a tie does not
+require a second alarm one millisecond later. Delayed deliveries recompute from the actual current time.
 
 `TextClock` and `AnalogClock` tick in the widget host, avoiding app-managed per-second updates.
 Digital time follows the device's 12/24-hour preference. The analogue seconds frequency is
@@ -95,13 +96,24 @@ The selected city and UTC offset remain available under **Clock details** in the
 Typography is sized for the launcher's reported bounds, with responsive fallbacks when those
 bounds are unavailable. Larger font settings remove optional country text first, shorten the
 compact context label, and preserve legible city/time content. Long cities can wrap on tall
-layouts and retain their full accessible text. Native OEM corner radii are used.
+layouts and retain their full accessible text. The floating layout has no surrounding card;
+text shadows and dial styling remain independent of update scheduling.
 
-One explicit immutable alarm PendingIntent serves all instances. `USE_EXACT_ALARM` is declared
-for this private API-33+ clock build. When available, `setExact(RTC, ...)` schedules the next event
-without waking a sleeping device. The fallback uses an inexact alarm. Neither mode guarantees
-an immediate first home-screen frame after sleep. No WorkManager, polling service, wake lock,
-network permission, or battery-optimization exemption is used.
+One explicit immutable handover PendingIntent serves all instances. `USE_EXACT_ALARM` is declared
+for this private API-33+ clock build. `setExactAndAllowWhileIdle(RTC_WAKEUP, ...)` schedules the
+next handover with an idle-capable, waking alarm. If exact access is unavailable, the fallback
+uses `setAndAllowWhileIdle(RTC_WAKEUP, ...)`. Each delivery selects the city for the actual
+current time and replaces the pending alarm before rendering widgets, so a rendering failure
+cannot break the handover chain. A separate inexact 30-minute recovery alarm
+repairs state if a handover delivery is lost. It uses elapsed time and is renewed on each update.
+Both alarms are registered explicitly and cancelled when the last widget is
+removed; launcher periodic updates stay disabled. Recovery is a backstop, not the normal
+handover cadence.
+
+This trades a few short device wakeups per hour for automatic location freshness. Android can
+still throttle idle-capable alarms and Samsung can restrict background apps; this does not
+guarantee millisecond delivery or bypass force-stop. No foreground service, app-managed wake
+lock, network permission, or battery-optimization exemption is used.
 
 Boot, wall-clock/timezone changes, package replacement, widget creation/resizing, and interactions
 recalculate state. Removing the last widget cancels the alarm. Android force-stop can suspend
@@ -147,6 +159,22 @@ under `.local/appearance-evidence/`. This script requires ADB, ripgrep, and tar.
 Captures are native views drawn at specified bounds, not
 Samsung home-screen screenshots. The script refuses physical-device serials to avoid changing
 a personal phone's settings or replacing its signed release with a debug build.
+
+To exercise automatic city handovers with a debug build and a pinned widget on a dedicated
+emulator:
+
+```sh
+python3 scripts/verify-widget-handover.py emulator-5556 --kill-process --output .local/handover-evidence/awake
+python3 scripts/verify-widget-handover.py emulator-5556 --idle --output .local/handover-evidence/idle
+```
+
+The script moves the emulator clock just before the scheduled handover and checks that an
+alarm changes the city and arms a future event without tapping the widget. `--idle` forces
+Doze during delivery; `--kill-process` verifies delivery after the background process exits.
+Clock, automatic-time and deep-idle settings are restored afterward.
+It requires a debug APK for `run-as` and logs, refuses physical devices, and saves before/after
+alarm state and diagnostics. Run these independently: idle-capable alarm quotas use elapsed
+real time, so repeated accelerated tests may be throttled even when wall time advances.
 
 For a debug build, capture scheduler events:
 

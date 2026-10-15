@@ -55,6 +55,17 @@ class TimeDomainTest {
         assertEquals(-DAY_MS / 2, domain.winner(antipode)!!.signedDistanceMs)
     }
 
+    @Test fun delayedDeliverySelectsTheCurrentCityAndRearmsInTheFuture() {
+        val domain = TimeDomain(listOf(zone("UTC"), zone("Asia/Kathmandu", 1), zone("America/New_York", 2)))
+        val start = epoch("2026-10-15T11:00:00Z")
+        val initial = domain.state(start)!!
+        val delivered = initial.nextEventEpochMs!! + 4 * 3_600_000L
+        val recovered = domain.state(delivered)!!
+        assertNotEquals(initial.winner.meta.name, recovered.winner.meta.name)
+        assertEquals(domain.winner(delivered), recovered.winner)
+        assertTrue(recovered.nextEventEpochMs!! > delivered)
+    }
+
     @Test fun competingZoneDstInvalidatesSchedule() {
         val domain = TimeDomain(listOf(zone("UTC"), zone("America/New_York", 1)))
         val transition = epoch("2026-03-08T07:00:00Z")
