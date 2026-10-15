@@ -8,7 +8,10 @@
     "build": "tsc -b && vite build",
     "test": "vitest run",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "android:prepare": "node scripts/export-widget-data.ts",
+    "android:test": "npm run android:prepare && cd android && ./gradlew testDebugUnitTest",
+    "android:build": "npm run android:prepare && cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
     "@vvo/tzdb": "^6.195.0",

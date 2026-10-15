@@ -2,3 +2,10 @@ node_modules/
 dist/
 *.tsbuildinfo
 .DS_Store
+.local/
+android/.gradle/
+android/.kotlin/
+android/**/build/
+android/local.properties
+*.jks
+*.keystore

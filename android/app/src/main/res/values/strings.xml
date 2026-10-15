@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">5PM Clock</string>
+    <string name="widget_description">The city closest to 5 PM, with live digital and analogue clocks.</string>
+    <string name="closest_to_five">CLOSEST TO 5 PM</string>
+    <string name="refresh">↻ LIVE</string>
+    <string name="refresh_description">Refresh selected city</string>
+    <string name="widget_brand">5PM</string>
+    <string name="settings_description">Open clock settings</string>
+    <string name="before_five">%s before 5</string>
+    <string name="after_five">%s after 5</string>
+    <string name="unavailable">Time data unavailable</string>
+    <string name="tap_refresh">Tap LIVE to try again</string>
+    <string name="intro">A little reminder that it is almost five somewhere. Add the widget to your home screen; tap its clock to open the full app.</string>
+    <string name="show_seconds">Show seconds on both clocks</string>
+    <string name="website_label">Website to open on tap</string>
+    <string name="website_help">Leave blank to open these settings instead. Settings apply to all widgets.</string>
+    <string name="invalid_website">Enter an http:// or https:// URL with a valid hostname.</string>
+    <string name="save">Save settings</string>
+    <string name="saved">Settings saved</string>
+    <string name="pin_widget">Add widget to home screen</string>
+    <string name="manual_add">Long-press your home screen, choose Widgets, then 5PM Clock.</string>
+    <string name="refresh_now">Refresh widgets</string>
+    <string name="open_website">Open full clock</string>
+    <string name="no_browser">No browser is available to open the clock.</string>
+    <string name="timing_help">The clocks tick locally without a background JavaScript process. City changes use precise alarms while the phone is active. Updates can be deferred while asleep and are recalculated after delivery.</string>
+    <string name="diagnostics_title">Update timing</string>
+    <string name="diagnostics_format">Last update: %1$s\nNext event: %2$s\nLast event delay: %3$d ms\nScheduling: %4$s</string>
+    <string name="no_active_widget">No active schedule</string>
+    <string name="precise">Precise</string>
+    <string name="best_effort">Best effort</string>
+</resources>

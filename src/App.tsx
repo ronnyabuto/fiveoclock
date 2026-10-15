@@ -1,32 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { rawTimeZones } from '@vvo/tzdb'
-import { findNearest, formatDistance, type ZoneResult, type ZoneSource } from './domain/time'
+import { choosePlace, placeName } from './domain/selection'
+import { findNearest, formatDistance, type ZoneSource } from './domain/time'
 
 const zones = rawTimeZones as ZoneSource[]
-const preferredCities = [
-  'London',
-  'New York',
-  'Tokyo',
-  'Sydney',
-  'Paris',
-  'Berlin',
-  'Rome',
-  'Cairo',
-  'Nairobi',
-  'Mumbai',
-  'Singapore',
-  'Dubai',
-  'Los Angeles',
-  'Chicago',
-  'Toronto',
-  'Mexico City',
-  'São Paulo',
-  'Cape Town',
-  'Auckland',
-  'Honolulu',
-] as const
-const preferredCityRank = new Map<string, number>(preferredCities.map((city, index) => [city, index]))
-
 function useNow() {
   const [now, setNow] = useState(() => new Date())
 
@@ -52,25 +29,6 @@ function useNow() {
   }, [])
 
   return now
-}
-
-function placeName(zone: ZoneResult) {
-  return zone.mainCities[0] || zone.name.split('/').pop()?.replaceAll('_', ' ') || zone.name
-}
-
-function choosePlace(results: ZoneResult[]) {
-  const familiarity = (zone: ZoneResult) => preferredCityRank.get(placeName(zone)) ?? preferredCities.length
-
-  return [...results].sort((a, b) => {
-    const undesirable = (zone: ZoneResult) =>
-      Number(zone.continentName === 'Antarctica') * 10 +
-      Number(!zone.countryName) * 5 +
-      Number(!zone.mainCities.length) * 2
-    return familiarity(a) - familiarity(b) ||
-      undesirable(a) - undesirable(b) ||
-      b.mainCities.length - a.mainCities.length ||
-      a.countryName.localeCompare(b.countryName)
-  })[0]
 }
 
 function ClockMark() {
