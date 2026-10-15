@@ -18,7 +18,7 @@ data class ZoneTime(val meta: ZoneMeta, val offsetSeconds: Int, val signedDistan
                 "%02d:%02d".format(java.util.Locale.ROOT, minutes / 60, minutes % 60)
         }
 }
-data class ClockState(val winner: ZoneTime, val nextEventEpochMs: Long)
+data class ClockState(val winner: ZoneTime, val nextEventEpochMs: Long?)
 
 class TimeDomain(zones: List<ZoneMeta>, rulesForZone: (String) -> ZoneRules = { ZoneId.of(it).rules }) {
     private val supported = zones.mapNotNull { meta ->
@@ -64,14 +64,7 @@ class TimeDomain(zones: List<ZoneMeta>, rulesForZone: (String) -> ZoneRules = { 
             val transition = zone.nextTransition(instant)?.instant?.toEpochMilli() ?: continue
             if (transition > nowMs) nextEvent = minOf(nextEvent, transition)
         }
-        val target = nowMs - winner.signedDistanceMs
-        // At exactly 17:00 the timer binds as count-up; no one-millisecond alarm is needed.
-        val nextTarget = if (target > nowMs) target else target + DAY_MS
-        nextEvent = minOf(nextEvent, nextTarget)
-        val antipode = target + DAY_MS / 2
-        val nextAntipode = if (antipode > nowMs) antipode else antipode + DAY_MS
-        nextEvent = minOf(nextEvent, nextAntipode)
-        return ClockState(winner, nextEvent)
+        return ClockState(winner, nextEvent.takeUnless { it == Long.MAX_VALUE })
     }
 
     private fun selectAtFixedOffsets(nowMs: Long, zones: List<ZoneTime>): ZoneTime? = select(zones.map {

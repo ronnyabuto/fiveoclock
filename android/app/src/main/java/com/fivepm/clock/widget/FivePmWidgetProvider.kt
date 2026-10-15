@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import com.fivepm.clock.ClockPreferences
 
 class FivePmWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
@@ -16,6 +17,8 @@ class FivePmWidgetProvider : AppWidgetProvider() {
     }
 
     override fun onDeleted(context: Context, ids: IntArray) {
+        val preferences = ClockPreferences(context)
+        ids.forEach { preferences.removeWidget(it) }
         WidgetController.update(context, AppWidgetManager.ACTION_APPWIDGET_DELETED)
     }
 

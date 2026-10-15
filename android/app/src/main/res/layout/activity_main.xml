@@ -1,30 +1,31 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/activity_root" android:layout_width="match_parent" android:layout_height="match_parent"
-    android:fillViewport="true" android:clipToPadding="false">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/activity_root" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:clipToPadding="false">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="@string/app_name" android:textColor="#F5AE46" android:textSize="32sp" android:layout_marginBottom="16dp" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="@string/intro" android:textColor="#F3F1E9" android:textSize="16sp" android:layout_marginBottom="20dp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/app_name" android:textColor="#F5AE46" android:textSize="32sp" android:layout_marginBottom="16dp" />
+        <TextView android:id="@+id/intro" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/intro" android:textColor="#F3F1E9" android:textSize="16sp" android:layout_marginBottom="20dp" />
         <Button android:id="@+id/pin_widget" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/pin_widget" />
-        <CheckBox android:id="@+id/show_seconds" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="@string/show_seconds" android:textColor="#F3F1E9" android:layout_marginTop="16dp" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:labelFor="@id/website"
-            android:text="@string/website_label" android:textColor="#9CAFA7" android:layout_marginTop="16dp" />
-        <EditText android:id="@+id/website" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:inputType="textUri" android:autofillHints="" android:importantForAutofill="no"
-            android:textColor="#F3F1E9" android:maxLines="2" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="@string/website_help" android:textColor="#9CAFA7" android:textSize="13sp" />
-        <Button android:id="@+id/save" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="@string/save" android:layout_marginTop="12dp" />
-        <Button android:id="@+id/open_website" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/open_website" />
-        <Button android:id="@+id/refresh_now" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/refresh_now" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="@string/timing_help" android:textColor="#9CAFA7" android:textSize="14sp" android:layout_marginTop="16dp" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/diagnostics_title"
-            android:textColor="#F5AE46" android:textSize="18sp" android:layout_marginTop="24dp" />
-        <TextView android:id="@+id/diagnostics" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:textColor="#9CAFA7" android:textSize="13sp" android:textIsSelectable="true" android:layout_marginTop="8dp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="@string/appearance_label" android:textColor="@color/widget_secondary" android:labelFor="@id/clock_style" />
+        <RadioGroup android:id="@+id/clock_style" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <RadioButton android:id="@+id/style_digital" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/style_digital" android:textColor="@color/widget_primary" android:paddingStart="0dp" android:paddingEnd="16dp" />
+            <RadioButton android:id="@+id/style_analogue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/style_analogue" android:textColor="@color/widget_primary" />
+        </RadioGroup>
+        <TextView android:id="@+id/configure_help" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/configure_help" android:textColor="@color/widget_secondary" android:textSize="13sp" android:visibility="gone" />
+        <CheckBox android:id="@+id/show_seconds" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/show_seconds" android:textColor="#F3F1E9" android:layout_marginTop="16dp" />
+        <LinearLayout android:id="@+id/website_group" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:labelFor="@id/website" android:text="@string/website_label" android:textColor="#9CAFA7" android:layout_marginTop="16dp" />
+            <EditText android:id="@+id/website" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textUri" android:autofillHints="" android:importantForAutofill="no" android:textColor="#F3F1E9" android:maxLines="2" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/website_help" android:textColor="#9CAFA7" android:textSize="13sp" />
+        </LinearLayout>
+        <Button android:id="@+id/save" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/save" android:layout_marginTop="12dp" />
+        <LinearLayout android:id="@+id/app_actions" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+            <Button android:id="@+id/open_website" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/open_website" />
+            <Button android:id="@+id/refresh_now" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/refresh_now" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/diagnostics_group" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="18sp" android:textColor="@color/widget_accent" android:layout_marginTop="16dp" android:text="@string/details_title" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/widget_secondary" android:layout_marginTop="8dp" android:id="@+id/selection_details" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/timing_help" android:textColor="#9CAFA7" android:textSize="14sp" android:layout_marginTop="16dp" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/diagnostics_title" android:textColor="#F5AE46" android:textSize="18sp" android:layout_marginTop="24dp" />
+            <TextView android:id="@+id/diagnostics" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="#9CAFA7" android:textSize="13sp" android:textIsSelectable="true" android:layout_marginTop="8dp" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

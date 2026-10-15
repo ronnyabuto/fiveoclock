@@ -1,18 +1,22 @@
 package com.fivepm.clock.widget
 
-import android.os.SystemClock
+import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Rect
+import android.util.SizeF
 import android.view.View
-import android.widget.Chronometer
 import android.widget.FrameLayout
 import android.widget.TextClock
 import android.widget.TextView
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.fivepm.clock.ClockPreferences
+import com.fivepm.clock.ClockAppearance
+import com.fivepm.clock.ClockStyle
 import com.fivepm.clock.R
 import com.fivepm.clock.domain.TimeDomain
 import com.fivepm.clock.domain.ZoneMeta
-import java.time.Instant
+import java.io.File
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,58 +24,89 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class WidgetRenderingTest {
     @Suppress("DEPRECATION")
-    @Test fun remoteActionsApplyToBothLayoutsAndBothTimerDirections() {
+    @Test fun nativeLayoutsFitTheirBoundsAcrossStylesAndFontScales() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val context = instrumentation.targetContext
-        val preferences = ClockPreferences(context)
-        val previousSeconds = preferences.seconds
-        val website = preferences.website
-        try {
-            instrumentation.runOnMainSync {
-                val domain = TimeDomain(listOf(ZoneMeta("Asia/Kathmandu", "Kathmandu", "Nepal", 0)))
-                for (seconds in listOf(true, false)) {
-                    preferences.save(seconds, website)
-                    for (layout in listOf(R.layout.widget_compact, R.layout.widget_wide)) {
-                        for (iso in listOf("2026-01-15T11:14:00Z", "2026-01-15T11:15:00Z", "2026-01-15T11:16:00Z")) {
-                            val now = Instant.parse(iso).toEpochMilli()
-                            val state = domain.state(now)!!
-                            val parent = FrameLayout(context)
-                            val view = WidgetRenderer.layout(context, layout, state, now).apply(context, parent)
-                            assertEquals("Kathmandu", view.findViewById<TextView>(R.id.city).text)
-                            val clock = view.findViewById<TextClock>(R.id.digital_clock)
-                            assertEquals("Asia/Kathmandu", clock.timeZone)
+        instrumentation.runOnMainSync {
+            val base = instrumentation.targetContext
+            val cases = listOf("Tokyo" to "Japan", "San Fernando del Valle de Catamarca" to "Argentina")
+            val failures = mutableListOf<String>()
+            for (scale in listOf(1f, 1.3f, 2f)) {
+                val configuration = Configuration(base.resources.configuration).apply { fontScale = scale }
+                val context = base.createConfigurationContext(configuration)
+                for (style in ClockStyle.entries) for (seconds in listOf(false, true)) {
+                    val sizes = WidgetRenderer.layouts(style).keys + listOf(SizeF(213f, 395f), SizeF(360f, 300f))
+                    for (size in sizes) for ((city, country) in cases) {
+                        val resource = WidgetRenderer.resourceFor(style, size)
+                        val now = System.currentTimeMillis()
+                        val state = TimeDomain(listOf(ZoneMeta("Asia/Tokyo", city, country, 0))).state(now)!!
+                        val view = WidgetRenderer.layout(context, resource, state, ClockAppearance(style, seconds), size)
+                            .apply(context, FrameLayout(context))
+                        val density = context.resources.displayMetrics.density
+                        val width = (size.width * density).toInt()
+                        val height = (size.height * density).toInt()
+                        view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                            View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
+                        view.layout(0, 0, width, height)
+                        val label = "$style ${size.width}x${size.height} font=$scale seconds=$seconds city=$city"
+                        assertEquals(city, view.findViewById<TextView>(R.id.city).text.toString())
+                        val clock = view.findViewById<TextClock>(R.id.digital_clock)
+                        assertEquals(if (style == ClockStyle.DIGITAL) View.VISIBLE else View.GONE, clock.visibility)
+                        val face = view.findViewById<android.widget.AnalogClock>(R.id.analogue_clock)
+                        assertEquals(if (style == ClockStyle.ANALOGUE) View.VISIBLE else View.GONE, face.visibility)
+                        if (style == ClockStyle.DIGITAL) {
+                            assertEquals("Asia/Tokyo", clock.timeZone)
                             assertEquals(if (seconds) "HH:mm:ss" else "HH:mm", clock.format24Hour)
-                            assertEquals("Asia/Kathmandu", view.findViewById<android.widget.AnalogClock>(R.id.analogue_clock).timeZone)
-                            assertEquals(if (layout == R.layout.widget_wide) View.VISIBLE else View.GONE, view.findViewById<View>(R.id.analogue_clock).visibility)
-                            val timer = view.findViewById<Chronometer>(R.id.distance)
-                            assertEquals(state.winner.signedDistanceMs < 0, timer.isCountDown)
-                            val expectedTarget = now - state.winner.signedDistanceMs
-                            assertTrue(kotlin.math.abs(timer.base - SystemClock.elapsedRealtime() + System.currentTimeMillis() - expectedTarget) < 1000)
-                            assertEquals(context.getString(if (timer.isCountDown) R.string.before_five else R.string.after_five), timer.format)
-                            timer.stop()
+                            assertEquals(if (seconds) "h:mm:ss a" else "h:mm a", clock.format12Hour)
+                            if (clock.layout.getLineWidth(0) > clock.width - clock.paddingLeft - clock.paddingRight + 1) {
+                                failures.add("$label: clock text clipped")
+                            }
+                        } else assertEquals("Asia/Tokyo", face.timeZone)
+                        for (id in listOf(R.id.context_label, R.id.city, R.id.digital_clock, R.id.analogue_clock, R.id.country)) {
+                            val child = view.findViewById<View>(id)
+                            if (child.visibility != View.VISIBLE) continue
+                            if (child is TextView && child.text.isNotEmpty() &&
+                                (child.height == 0 || child.layout.getLineBottom(child.layout.lineCount - 1) > child.height - child.paddingTop - child.paddingBottom)) {
+                                failures.add("$label: ${context.resources.getResourceEntryName(id)} text cut vertically")
+                            }
+                            val rect = Rect(0, 0, child.width, child.height)
+                            (view as android.view.ViewGroup).offsetDescendantRectToMyCoords(child, rect)
+                            if (rect.top < view.paddingTop || rect.bottom > height - view.paddingBottom ||
+                                rect.left < view.paddingLeft || rect.right > width - view.paddingRight) {
+                                failures.add("$label: ${context.resources.getResourceEntryName(id)} outside content: $rect")
+                            }
+                        }
+                        if (city == "Tokyo" && !seconds) {
+                            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                            view.draw(Canvas(bitmap))
+                            val format = if (android.text.format.DateFormat.is24HourFormat(context)) "24h" else "12h"
+                            val directory = File(base.cacheDir, "widget-evidence/$format").apply { mkdirs() }
+                            File(directory, "${style.name.lowercase()}-${size.width.toInt()}x${size.height.toInt()}-font-$scale.png")
+                                .outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                            bitmap.recycle()
                         }
                     }
                 }
             }
-        } finally { preferences.save(previousSeconds, website) }
+            assertTrue(failures.joinToString("\n"), failures.isEmpty())
+        }
     }
 
-    @Test fun unavailableDataHidesClocksAndStopsTimer() {
+    @Test fun unavailableStateHasOneRetryActionAndRecoversOnReapply() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         instrumentation.runOnMainSync {
             val context = instrumentation.targetContext
-            val view = WidgetRenderer.layout(context, R.layout.widget_wide, null, System.currentTimeMillis())
-                .apply(context, FrameLayout(context))
-            assertEquals(View.GONE, view.findViewById<View>(R.id.digital_clock).visibility)
-            assertEquals(View.GONE, view.findViewById<View>(R.id.distance).visibility)
-            assertEquals(context.getString(R.string.unavailable), view.findViewById<TextView>(R.id.city).text)
-            val now = System.currentTimeMillis()
-            val state = TimeDomain(listOf(ZoneMeta("UTC", "UTC", "", 0))).state(now)
-            WidgetRenderer.layout(context, R.layout.widget_wide, state, now).reapply(context, view)
-            assertEquals(View.VISIBLE, view.findViewById<View>(R.id.digital_clock).visibility)
-            assertEquals(View.VISIBLE, view.findViewById<View>(R.id.analogue_clock).visibility)
-            assertEquals(View.VISIBLE, view.findViewById<View>(R.id.distance).visibility)
-            view.findViewById<Chronometer>(R.id.distance).stop()
+            for (style in ClockStyle.entries) {
+                val appearance = ClockAppearance(style)
+                val resource = WidgetRenderer.layouts(style).values.last()
+                val view = WidgetRenderer.layout(context, resource, null, appearance).apply(context, FrameLayout(context))
+                assertEquals(View.GONE, view.findViewById<View>(R.id.digital_clock).visibility)
+                assertEquals(View.GONE, view.findViewById<View>(R.id.analogue_clock).visibility)
+                assertEquals(context.getString(R.string.tap_retry), view.findViewById<TextView>(R.id.country).text)
+                val state = TimeDomain(listOf(ZoneMeta("UTC", "UTC", "", 0))).state(System.currentTimeMillis())
+                WidgetRenderer.layout(context, resource, state, appearance).reapply(context, view)
+                assertEquals("UTC", view.findViewById<TextView>(R.id.city).text)
+                assertEquals(View.VISIBLE, view.findViewById<View>(if (style == ClockStyle.DIGITAL) R.id.digital_clock else R.id.analogue_clock).visibility)
+            }
         }
     }
 }

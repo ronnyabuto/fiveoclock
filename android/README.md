@@ -1,8 +1,9 @@
 # Android companion
 
 Native home-screen widget for Android 13+ (API 33), including the Galaxy S23 Ultra.
-The wide layout targets 4×2 launcher cells; resizing down selects a compact digital layout.
-The launcher determines the actual cell dimensions.
+The default city-and-time layout targets 4×2 launcher cells. Digital and analogue styles each
+adapt to short, compact, and tall bounds, including tall narrow cards. The launcher
+determines actual dimensions, which are used to fit the time without clipping.
 
 ## Build
 
@@ -25,9 +26,14 @@ Install with `adb install -r app/build/outputs/apk/debug/app-debug.apk`.
 Open **5PM Clock**, then choose **Add widget to home screen**. You can also long-press
 the home screen and choose **Widgets → 5PM Clock**.
 
-Open the app once after installation. Settings change seconds and the website for all widget instances.
-The default website is `https://fiveoclock.vercel.app/`; leave it blank to open settings on tap.
-The widget's **LIVE** button refreshes selection, and its gear opens settings.
+Open the app once after installation. Digital minutes are the default; seconds and an analogue
+style are optional. Touch and hold a widget and use the launcher's configuration action to change
+that widget's style or seconds. App settings supply defaults for widgets without overrides.
+Existing explicit seconds preferences are retained on upgrade.
+
+The default tap destination is `https://fiveoclock.vercel.app/`; leave it blank to open settings.
+The website applies to all instances. Normal widgets have one action: tap to open the full clock.
+An unavailable widget instead says **Tap to retry**. Refresh is also available in app settings.
 
 ## Signed releases
 
@@ -72,15 +78,23 @@ Gradle reject stale data after changes to the domain, exporter, or npm lockfile.
 
 1. A winning-city change at a circular midpoint between local-17:00 UTC phases.
 2. An offset transition in any candidate timezone, including competitors.
-3. A timer-direction change at 17:00 (or the circular-distance reset for sparse datasets).
+
+There are no countdown-only alarms at 17:00 or the circular-distance reset. If a dataset
+has a single fixed-offset clock, no future event is needed; the native clock keeps ticking.
 
 Exact ties retain the web comparator's preference. A tie and the next millisecond can have
 different winners. Delayed deliveries recompute from the actual current time.
 
 `TextClock` and `AnalogClock` tick in the widget host, avoiding app-managed per-second updates.
-The analogue seconds frequency is controlled by the system, not the display refresh rate.
-The distance `Chronometer` uses elapsed realtime and shows `MM:SS before/after 5`; it does not
-reproduce the web pill's `Xm Ys` format. Disabling seconds affects both clocks, not the timer.
+Digital time follows the device's 12/24-hour preference. The analogue seconds frequency is
+controlled by the system, not the display refresh rate. Each style shows one clock; UTC offset,
+countdown, LIVE indicator, and settings toolbar are omitted from the widget face.
+The selected city and UTC offset remain available under **Clock details** in the app.
+
+Typography is sized for the launcher's reported bounds, with responsive fallbacks when those
+bounds are unavailable. Larger font settings remove optional country text first, shorten the
+compact context label, and preserve legible city/time content. Long cities can wrap on tall
+layouts and retain their full accessible text. Native OEM corner radii are used.
 
 One explicit immutable alarm PendingIntent serves all instances. `USE_EXACT_ALARM` is declared
 for this private API-33+ clock build. When available, `setExact(RTC, ...)` schedules the next event
@@ -116,8 +130,22 @@ cd android
 ./gradlew connectedDebugAndroidTest
 ```
 
-Instrumentation checks Android timezone parity and applies RemoteViews actions for both layouts,
-seconds settings, before/at/after 17:00, and unavailable data. It does not prove One UI scheduling.
+Instrumentation checks Android timezone parity, launcher configuration results/cancellation,
+per-widget preferences, unavailable-state recovery, and RemoteViews rendering across styles,
+minimum/intermediate/tall bounds, normal/1.3×/2× font scales, and long city names.
+
+For reproducible visual checks on a dedicated emulator:
+
+```sh
+bash scripts/verify-widget-ui.sh emulator-5556
+```
+
+This builds and installs the debug APK, runs all device tests in 24-hour mode, reruns rendering
+in 12-hour mode, restores the original time setting, and saves native PNG captures and results
+under `.local/appearance-evidence/`. This script requires ADB, ripgrep, and tar.
+Captures are native views drawn at specified bounds, not
+Samsung home-screen screenshots. The script refuses physical-device serials to avoid changing
+a personal phone's settings or replacing its signed release with a debug build.
 
 For a debug build, capture scheduler events:
 
@@ -132,10 +160,9 @@ proof of the launcher's visible-frame timing: capture a screen recording around 
 
 On the S23 Ultra, record visible handover delay, recovery after overnight idle, battery saver,
 Samsung sleeping-app modes, reboot, manual clock changes, resizing, large fonts, multiple
-instances, removal of the last widget, and website/refresh/settings taps. Observe overnight
+instances, removal of the last widget, and website/retry taps plus launcher reconfiguration. Observe overnight
 battery usage without other test workloads. Do not interpret ticking seconds as proof that
-city selection is fresh. ADB instrumentation and One UI checks remain pending until a device
-is connected; see [validation.md](validation.md) for the recorded local checks.
+city selection is fresh. Emulator checks cover native rendering and configuration; One UI checks still need the phone; see [validation.md](validation.md) for the recorded local checks.
 
 ## Primary references
 

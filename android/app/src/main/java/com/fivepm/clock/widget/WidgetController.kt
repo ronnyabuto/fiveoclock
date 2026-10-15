@@ -8,7 +8,9 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import android.util.SizeF
 import com.fivepm.clock.BuildConfig
+import com.fivepm.clock.ClockPreferences
 
 object WidgetController {
     private const val DIAGNOSTICS = "widget_diagnostics"
@@ -25,11 +27,15 @@ object WidgetController {
         val scheduled = previous.getLong("nextEvent", 0)
         val lateness = if (reason == FivePmWidgetProvider.ALARM && scheduled > 0) maxOf(0, now - scheduled) else previous.getLong("lateness", 0)
         val state = ZoneRepository.domain(context).state(now)
-        manager.updateAppWidget(ids, WidgetRenderer.render(context, state, now))
+        val preferences = ClockPreferences(context)
+        for (id in ids) {
+            val sizes = manager.getAppWidgetOptions(id).getParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES, SizeF::class.java).orEmpty()
+            manager.updateAppWidget(id, WidgetRenderer.render(context, state, preferences.appearance(id), sizes))
+        }
         val alarmManager = context.getSystemService(AlarmManager::class.java)
         val alarm = alarmIntent(context)
         alarmManager.cancel(alarm)
-        val exact = state?.let { schedule(alarmManager, it.nextEventEpochMs, alarm) } ?: false
+        val exact = state?.nextEventEpochMs?.let { schedule(alarmManager, it, alarm) } ?: false
         previous.edit().putLong("updated", now).putLong("nextEvent", state?.nextEventEpochMs ?: 0)
             .putLong("lateness", lateness).putString("reason", reason).putBoolean("exact", exact).apply()
         if (BuildConfig.DEBUG) Log.i("FivePmClock", "reason=$reason scheduled=$scheduled received=$now lateMs=$lateness next=${state?.nextEventEpochMs} exact=$exact city=${state?.winner?.meta?.city}")

@@ -31,12 +31,13 @@ class TimeDomainTest {
         assertEquals("Asia/Kolkata", reverse.winner(midpoint + 1)!!.meta.name)
     }
 
-    @Test fun schedulesTargetCrossingWithoutChangingCity() {
+    @Test fun doesNotScheduleCountdownOnlyUpdates() {
         val domain = TimeDomain(listOf(zone("UTC")))
         val target = epoch("2026-01-15T17:00:00Z")
-        assertEquals(target, domain.state(target - 1)!!.nextEventEpochMs)
+        for (now in listOf(target - 1, target, target + 1)) {
+            assertNull(domain.state(now)!!.nextEventEpochMs)
+        }
         assertEquals(0L, domain.state(target)!!.winner.signedDistanceMs)
-        assertTrue(domain.state(target)!!.nextEventEpochMs > target)
     }
 
     @Test fun handlesMidnightAndEquivalentOffsets() {
@@ -44,13 +45,13 @@ class TimeDomainTest {
         val now = epoch("2026-01-15T23:59:59.999Z")
         assertEquals("Pacific/Kiritimati", domain.winner(now)!!.meta.name)
         assertEquals(domain.winner(now)!!.signedDistanceMs, domain.winner(now + 1)!!.signedDistanceMs - 1)
-        assertTrue(domain.state(now)!!.nextEventEpochMs > now)
+        assertNull(domain.state(now)!!.nextEventEpochMs)
     }
 
-    @Test fun oneZoneResetsCircularDistanceAtTheAntipode() {
+    @Test fun oneZoneDoesNotScheduleInvisibleCircularDistanceChanges() {
         val domain = TimeDomain(listOf(zone("UTC")))
         val antipode = epoch("2026-01-15T05:00:00Z")
-        assertEquals(antipode, domain.state(antipode - 1)!!.nextEventEpochMs)
+        assertNull(domain.state(antipode - 1)!!.nextEventEpochMs)
         assertEquals(-DAY_MS / 2, domain.winner(antipode)!!.signedDistanceMs)
     }
 
@@ -58,7 +59,7 @@ class TimeDomainTest {
         val domain = TimeDomain(listOf(zone("UTC"), zone("America/New_York", 1)))
         val transition = epoch("2026-03-08T07:00:00Z")
         assertEquals(transition, domain.state(transition - 1)!!.nextEventEpochMs)
-        assertTrue(domain.state(transition)!!.nextEventEpochMs > transition)
+        assertTrue(domain.state(transition)!!.nextEventEpochMs!! > transition)
     }
 
     @Test fun plannerNeverSkipsAVisibleStateChangeAcrossTheYear() {
@@ -71,12 +72,11 @@ class TimeDomainTest {
             val end = now + DAY_MS
             while (now < end) {
                 val state = domain.state(now)!!
-                val next = state.nextEventEpochMs
+                val next = requireNotNull(state.nextEventEpochMs)
                 assertTrue("Planner must progress at $now", next > now)
                 for (sample in listOf(now + (next - now) / 2, next - 1)) {
                     val actual = domain.winner(sample)!!
                     assertEquals("Skipped winner at $sample", state.winner.meta.name, actual.meta.name)
-                    assertEquals("Skipped timer direction at $sample", state.winner.signedDistanceMs < 0, actual.signedDistanceMs < 0)
                 }
                 now = next
             }
