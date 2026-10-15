@@ -1,6 +1,6 @@
 <resources>
-    <color name="widget_surface">#0B1815</color>
     <color name="widget_primary">#F3F1E9</color>
     <color name="widget_accent">#F5AE46</color>
     <color name="widget_secondary">#9CAFA7</color>
+    <color name="widget_shadow">#D9000000</color>
 </resources>
