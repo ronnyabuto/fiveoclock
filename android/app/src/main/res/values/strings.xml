@@ -17,10 +17,10 @@
     <string name="intro">A little reminder that it is almost five somewhere. Add the widget to your home screen; tap its clock to open the full app.</string>
     <string name="show_seconds">Show seconds</string>
     <string name="website_label">Website to open on tap</string>
-    <string name="website_help">Leave blank to open settings instead. The website applies to all widgets. Style and seconds are defaults; touch and hold a widget to customize it.</string>
+    <string name="website_help">Leave blank to open settings instead. The website applies to all widgets. Saving here applies style and seconds to all widgets. Touch and hold a widget to customize it individually.</string>
     <string name="invalid_website">Enter an http:// or https:// URL with a valid hostname.</string>
-    <string name="save">Save settings</string>
-    <string name="saved">Settings saved</string>
+    <string name="save">Apply to all widgets</string>
+    <string name="saved">Applied to all widgets</string>
     <string name="pin_widget">Add widget to home screen</string>
     <string name="manual_add">Long-press your home screen, choose Widgets, then 5PM Clock.</string>
     <string name="refresh_now">Refresh widgets</string>

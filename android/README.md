@@ -28,7 +28,8 @@ the home screen and choose **Widgets → 5PM Clock**.
 
 Open the app once after installation. Digital minutes are the default; seconds and an analogue
 style are optional. Touch and hold a widget and use the launcher's configuration action to change
-that widget's style or seconds. App settings supply defaults for widgets without overrides.
+that widget's style or seconds. In the app, **Apply to all widgets** updates every existing
+widget and the default appearance, replacing individual style/seconds overrides.
 Existing explicit seconds preferences are retained on upgrade.
 
 The default tap destination is `https://fiveoclock.vercel.app/`; leave it blank to open settings.

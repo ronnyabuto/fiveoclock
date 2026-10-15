@@ -13,9 +13,14 @@ class ClockPreferences(context: Context) {
     val style: ClockStyle get() = readStyle("style", ClockStyle.DIGITAL)
     val website: String get() = preferences.getString("website", DEFAULT_WEBSITE) ?: DEFAULT_WEBSITE
 
-    fun save(seconds: Boolean, website: String, style: ClockStyle = this.style) {
+    fun save(seconds: Boolean, website: String, style: ClockStyle = this.style, applyToAllWidgets: Boolean = false) {
         require(validWebsite(website))
-        preferences.edit().putBoolean("seconds", seconds).putString("website", website.trim())
+        val editor = preferences.edit()
+        if (applyToAllWidgets) {
+            preferences.all.keys.filter { it.startsWith("widget.") && (it.endsWith(".style") || it.endsWith(".seconds")) }
+                .forEach { editor.remove(it) }
+        }
+        editor.putBoolean("seconds", seconds).putString("website", website.trim())
             .putString("style", style.name).apply()
     }
 

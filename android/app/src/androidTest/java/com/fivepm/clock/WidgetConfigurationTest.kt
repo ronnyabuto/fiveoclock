@@ -36,6 +36,28 @@ class WidgetConfigurationTest {
         } finally { preferences.removeWidget(id) }
     }
 
+    @Test fun appSettingsApplyAnalogueToAnExistingDigitalWidget() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val preferences = ClockPreferences(context)
+        val original = preferences.appearance()
+        val website = preferences.website
+        val id = Int.MAX_VALUE
+        try {
+            preferences.saveAppearance(id, ClockAppearance(ClockStyle.DIGITAL, true))
+            ActivityScenario.launch<MainActivity>(Intent(context, MainActivity::class.java)).use { scenario ->
+                scenario.onActivity { activity ->
+                    activity.findViewById<RadioGroup>(R.id.clock_style).check(R.id.style_analogue)
+                    activity.findViewById<CheckBox>(R.id.show_seconds).isChecked = false
+                    activity.findViewById<Button>(R.id.save).performClick()
+                    assertEquals(ClockAppearance(ClockStyle.ANALOGUE, false), preferences.appearance(id))
+                }
+            }
+        } finally {
+            preferences.removeWidget(id)
+            preferences.save(original.seconds, website, original.style)
+        }
+    }
+
     @Test fun incompleteConfigurationReturnsCanceled() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         for (id in listOf(AppWidgetManager.INVALID_APPWIDGET_ID, Int.MAX_VALUE)) {

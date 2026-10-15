@@ -75,7 +75,7 @@ class MainActivity : Activity() {
             if (!ClockPreferences.validWebsite(value)) {
                 website.error = getString(R.string.invalid_website)
             } else {
-                preferences.save(seconds.isChecked, value, style)
+                preferences.save(seconds.isChecked, value, style, applyToAllWidgets = true)
                 WidgetController.update(this, "settings")
                 refreshDiagnostics()
                 Toast.makeText(this, R.string.saved, Toast.LENGTH_SHORT).show()
