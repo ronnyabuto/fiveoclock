@@ -102,7 +102,10 @@ object WidgetRenderer {
     }
 
     private fun fittingTimeSize(context: Context, preferredSp: Float, widthDp: Float, seconds: Boolean): Float {
-        val paint = Paint().apply { typeface = Typeface.create("sans-serif-light", Typeface.NORMAL) }
+        val paint = Paint().apply {
+            typeface = Typeface.create("sans-serif-light", Typeface.NORMAL)
+            fontFeatureSettings = "tnum"
+        }
         val metrics = context.resources.displayMetrics
         val width = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, widthDp, metrics)
         val samples = if (android.text.format.DateFormat.is24HourFormat(context)) {
